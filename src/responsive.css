@@ -1,0 +1,171 @@
+/* ============================================================
+   RESPONSIVIDADE GLOBAL — AgroIdeas
+   ============================================================ */
+
+/* --- Sidebar wrapper & overlay --- */
+.sidebar-wrapper {
+  flex-shrink: 0;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Layout raiz */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Sidebar vira drawer lateral */
+  .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 500;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 260px;
+  }
+
+  .sidebar-wrapper.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Overlay escurece o fundo */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 499;
+  }
+
+  /* Padding do conteúdo principal */
+  .main-content-pad {
+    padding: 16px !important;
+  }
+}
+
+/* ============================================================
+   Dashboard
+   ============================================================ */
+@media (max-width: 900px) {
+  /* stats: 2 colunas em tablets */
+  [class*="statsGrid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* mainGrid: coluna única */
+  [class*="mainGrid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  [class*="statsGrid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  [class*="statCard"] {
+    padding: 14px 12px !important;
+  }
+  [class*="statValue"] {
+    font-size: 20px !important;
+  }
+}
+
+/* ============================================================
+   MonthView — calendário mensal
+   ============================================================ */
+@media (max-width: 768px) {
+  [class*="dayCell"] {
+    min-height: 52px !important;
+    padding: 4px !important;
+  }
+
+  [class*="dayNumber"] {
+    font-size: 11px !important;
+  }
+
+  [class*="weekDay"] {
+    padding: 6px 2px !important;
+    font-size: 10px !important;
+  }
+
+  [class*="eventTag"] {
+    font-size: 8px !important;
+    padding: 1px 3px !important;
+  }
+
+  [class*="eventEpisode"] {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   ListView
+   ============================================================ */
+@media (max-width: 600px) {
+  [class*="card"] {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  [class*="meta"] {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  [class*="filters"] {
+    flex-wrap: wrap;
+  }
+}
+
+/* ============================================================
+   EpisodesView — formulário
+   ============================================================ */
+@media (max-width: 600px) {
+  [class*="formGrid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [class*="form"] {
+    padding: 16px !important;
+  }
+}
+
+/* ============================================================
+   CompaniesView
+   ============================================================ */
+@media (max-width: 600px) {
+  [class*="companiesGrid"],
+  [class*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   Modais — garantir que caibam na tela
+   ============================================================ */
+@media (max-width: 600px) {
+  /* ActivityModal, EventDetailModal, etc. */
+  [class*="modal"],
+  [class*="Modal"] {
+    width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* WhatsApp button — subir um pouco no mobile por causa da barra de navegação */
+@media (max-width: 768px) {
+  .whatsapp-btn {
+    bottom: 20px !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}

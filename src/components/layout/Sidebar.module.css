@@ -1,0 +1,52 @@
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+.logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.logoIcon { color: var(--primary); }
+.logoText { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); }
+.addButton { background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: var(--radius); font-weight: 600; margin-bottom: 32px; width: 100%; box-shadow: 0 10px 15px -3px rgba(45, 90, 39, 0.2); }
+.nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.sectionTitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; margin: 16px 8px 8px; }
+.navItem { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius); color: var(--text-main); font-weight: 500; width: 100%; }
+.navItem:hover { background-color: #f3f4f6; color: var(--primary); }
+.navItem.active { background-color: #ecf3ec; color: var(--primary); font-weight: 600; }
+.footer {
+  margin-top: auto;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.socialSidebar {
+  padding: 1rem 1.25rem;
+  margin: 0.5rem 0;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.socialLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.userProfile { display: flex; align-items: center; gap: 12px; padding: 8px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.userInfo { display: flex; flex-direction: column; }
+.userName { font-size: 14px; font-weight: 600; }
+.userRole { font-size: 12px; color: var(--text-muted); }
