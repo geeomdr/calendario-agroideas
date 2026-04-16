@@ -8,6 +8,7 @@ import YearView from './components/calendar/YearView';
 import EpisodesView from './components/calendar/EpisodesView';
 import CompaniesView from './components/companies/CompaniesView';
 import ExportView from './components/calendar/ExportView';
+import AnalisadorView from './components/calendar/AnalisadorView';
 import SharedEpisodeView from './components/calendar/SharedEpisodeView';
 import ActivityModal from './components/calendar/ActivityModal';
 import EventDetailModal from './components/calendar/EventDetailModal';
@@ -104,6 +105,7 @@ function AppInner() {
         case 'episodes': return <EpisodesView />;
         case 'companies': return <CompaniesView />;
         case 'export': return <ExportView />;
+        case 'analisador': return <AnalisadorView />;
         default: return null;
       }
     };

@@ -1,4 +1,4 @@
-export type ViewType = 'year' | 'month' | 'list' | 'dashboard' | 'episodes' | 'companies' | 'export';
+export type ViewType = 'year' | 'month' | 'list' | 'dashboard' | 'episodes' | 'companies' | 'export' | 'analisador';
 
 export type Status = 'em-edicao' | 'em-aprovacao' | 'pendente' | 'agendado' | 'postado';
 

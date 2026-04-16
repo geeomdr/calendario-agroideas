@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Sidebar.module.css';
-import { LayoutDashboard, ListTodo, CalendarDays, Settings, Plus, Mic, Building2, FileDown } from 'lucide-react';
+import { LayoutDashboard, ListTodo, CalendarDays, Settings, Plus, Mic, Building2, FileDown, Sparkles } from 'lucide-react';
 import type { ViewType } from '../../types';
 import logoAgroideas from '../../assets/logo-agroideas.png';
 import { SocialLinksBar } from '../calendar/socialLinks';
@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onAddClick
     { id: 'episodes', label: 'Episódios', icon: <Mic size={20} /> },
     { id: 'companies', label: 'Empresas Parceiras', icon: <Building2 size={20} /> },
     { id: 'export', label: 'Exportar Calendário', icon: <FileDown size={20} /> },
+    { id: 'analisador', label: 'Analisador de EP', icon: <Sparkles size={20} /> },
   ];
 
   return (
