@@ -1,19 +1,79 @@
-.container { display: flex; flex-direction: column; gap: 24px; }
-.header { padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.header h2 { font-size: 28px; }
-.monthsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; }
-.monthCard { background: white; padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.monthTitle { text-transform: capitalize; font-size: 16px; margin-bottom: 16px; color: var(--primary); }
-.weekLabels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
-.weekLabels span { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; }
-.daysGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; border-radius: 4px; position: relative; cursor: default; }
+.container { display: flex; flex-direction: column; gap: 20px; position: relative; }
+
+/* ── Year selector ── */
+.header { display: flex; align-items: center; justify-content: center; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.yearLabel { font-size: 26px; font-weight: 700; color: var(--primary-dark); min-width: 80px; text-align: center; }
+.yearBtn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); color: var(--text-muted); background: white; transition: background 0.15s, color 0.15s; }
+.yearBtn:hover { background: #f0fdf4; color: var(--primary); border-color: var(--primary-light); }
+
+/* ── Legend ── */
+.legend { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 6px 0; }
+.legendItem { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Month grid ── */
+.monthsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+.monthCard { background: white; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.monthTitle { text-transform: capitalize; font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--primary); }
+
+.weekLabels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 6px; }
+.weekLabels span { font-size: 9px; font-weight: 700; color: var(--text-muted); text-align: center; }
+
+.daysGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+
+/* ── Day cell ── */
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  position: relative;
+  cursor: default;
+  user-select: none;
+}
+.dayNumber { font-size: 10px; font-weight: 500; color: var(--text-main); line-height: 1; }
 .day:hover { background: #f3f4f6; }
-.hasEvent { font-weight: 700; color: var(--primary-dark); }
-.eventDots { display: flex; gap: 2px; position: absolute; bottom: 2px; }
-.dot { width: 3px; height: 3px; border-radius: 50%; }
-.planting { background: var(--status-planting); }
-.harvest { background: var(--status-harvest); }
-.fertilization { background: var(--status-fertilization); }
-.pest { background: var(--status-pest); }
-.maintenance { background: var(--status-maintenance); }
+
+.today { background: #f0fdf4 !important; }
+.today .dayNumber { font-weight: 800; color: var(--primary); }
+.today::after { content: ''; position: absolute; inset: 0; border-radius: 4px; border: 1px solid var(--primary-light); pointer-events: none; }
+
+.hasEvent { cursor: pointer; }
+.hasEvent .dayNumber { font-weight: 700; color: var(--primary-dark); }
+.hasEvent:hover { background: #ecf3ec; }
+
+.active { background: #d1fae5 !important; }
+
+/* ── Dots ── */
+.dots { display: flex; gap: 2px; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); }
+.dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Popover ── */
+.popover {
+  position: fixed;
+  z-index: 1200;
+  width: 280px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.16);
+  overflow: hidden;
+  animation: popIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.popoverHeader { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid var(--border); }
+.popoverDate { font-size: 12px; font-weight: 700; color: var(--text-main); text-transform: capitalize; }
+.popoverClose { display: flex; align-items: center; color: var(--text-muted); padding: 2px; border-radius: 4px; }
+.popoverClose:hover { color: var(--text-main); }
+
+.popoverList { display: flex; flex-direction: column; max-height: 260px; overflow-y: auto; }
+.popoverItem { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.popoverItem:last-child { border-bottom: none; }
+.popoverDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.popoverItemBody { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.popoverType { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.popoverName { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.popoverMeta { font-size: 11px; color: var(--text-muted); }

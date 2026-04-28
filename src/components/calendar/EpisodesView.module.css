@@ -123,6 +123,77 @@
 
 .topicInput:focus { border-color: #6366f1; }
 
+/* ── Cortes existentes na edição ─────────────────────────────────────────── */
+.cutsList { display: flex; flex-direction: column; gap: 8px; }
+
+.cutCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid #c7d2fe;
+}
+
+.cutCardNum { font-size: 12px; font-weight: 700; color: #6366f1; min-width: 64px; flex-shrink: 0; }
+
+.cutCardInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cutCardTitle { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cutCardMeta { font-size: 11px; color: var(--text-muted); }
+
+.cutCardStatus { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+
+.cutCardEditBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  padding: 5px 12px;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  background: white;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.cutCardEditBtn:hover { background: #f5f3ff; }
+
+.cutsEmpty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 0 4px; text-align: center; }
+.cutsEmptyText { font-size: 13px; color: #6366f1; opacity: 0.75; }
+
+.cutsAddBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+  border: 1.5px dashed #a5b4fc;
+  background: white;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.cutsAddBtn:hover { background: #f5f3ff; }
+
+.cutsAiDivider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6366f1;
+  opacity: 0.7;
+  padding-top: 4px;
+  border-top: 1px dashed #c7d2fe;
+  margin-top: 4px;
+}
+
 /* ── Botão IA ─────────────────────────────────────────────────────────────── */
 .aiSubmitBtn {
   display: flex;

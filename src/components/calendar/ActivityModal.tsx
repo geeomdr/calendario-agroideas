@@ -11,11 +11,13 @@ import { PLATFORMS, PLATFORM_COLOR } from './platformOptions';
 interface ActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultEpisode?: string;
+  defaultCompanyId?: string;
 }
 
 const REQUIRED_COLS = ['title', 'date', 'episode', 'company'];
 
-const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
+const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, defaultEpisode, defaultCompanyId }) => {
   const { addEvent, addEvents, companies } = useEvents();
   const [tab, setTab] = useState<'manual' | 'import'>('manual');
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
@@ -26,6 +28,17 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
   const [episode, setEpisode] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [company, setCompany] = useState('');
+
+  // Pre-fill when modal opens with context (e.g. from episode edit form)
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (defaultEpisode) setEpisode(defaultEpisode);
+    if (defaultCompanyId) {
+      setCompanyId(defaultCompanyId);
+      const comp = companies.find(c => c.id === defaultCompanyId);
+      if (comp) setCompany(comp.name);
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cutNumber, setCutNumber] = useState('1');
   const [status, setStatus] = useState<Status>('em-aprovacao');
   const [time, setTime] = useState('');
