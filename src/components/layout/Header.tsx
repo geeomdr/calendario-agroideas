@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Header.module.css';
-import { Search, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import type { ViewType } from '../../types';
 
 interface HeaderProps {
@@ -47,12 +47,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onMenuClick 
           )}
         </div>
       </div>
-      <div className={styles.actions}>
-        <div className={`${styles.searchBar} ${styles.searchDesktop}`}>
-          <Search size={18} className={styles.searchIcon} />
-          <input type="text" placeholder="Buscar atividades..." />
-        </div>
-      </div>
+      <div className={styles.actions} />
     </header>
   );
 };

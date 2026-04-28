@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { X, Upload, FileSpreadsheet, AlertCircle, Link2, CheckCircle2, Plus } from 'lucide-react';
 import { useEvents } from '../../contexts/EventsContext';
 import type { Status, AgroEvent } from '../../types';
 import CompanyModal from '../companies/CompanyModal';
 import styles from './ActivityModal.module.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
+import { PLATFORMS, PLATFORM_COLOR } from './platformOptions';
 
 interface ActivityModalProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
   const [time, setTime] = useState('');
   const [platforms, setPlatforms] = useState('Reels+Shorts+TT');
   const [notes, setNotes] = useState('');
+  const [linkProducao, setLinkProducao] = useState('');
+  const [pubLinks, setPubLinks] = useState<{ channel: string; url: string }[]>([]);
 
   // Import
   const fileRef = useRef<HTMLInputElement>(null);
@@ -37,14 +40,19 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
   const [importError, setImportError] = useState('');
   const [fileName, setFileName] = useState('');
 
-  const resetManual = () => { setTitle(''); setDate(''); setTime(''); setEpisode(''); setCompanyId(''); setCompany(''); setCutNumber('1'); setStatus('em-aprovacao'); setPlatforms('Reels+Shorts+TT'); setNotes(''); };
+  const resetManual = () => { setTitle(''); setDate(''); setTime(''); setEpisode(''); setCompanyId(''); setCompany(''); setCutNumber('1'); setStatus('em-aprovacao'); setPlatforms('Reels+Shorts+TT'); setNotes(''); setLinkProducao(''); setPubLinks([]); };
+
+  const addPubLink = () => setPubLinks(prev => [...prev, { channel: '', url: '' }]);
+  const removePubLink = (idx: number) => setPubLinks(prev => prev.filter((_, i) => i !== idx));
+  const changePubLink = (idx: number, field: 'channel' | 'url', value: string) =>
+    setPubLinks(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
   const resetImport = () => { setImportRows([]); setImportError(''); setFileName(''); };
 
   const handleClose = () => { resetManual(); resetImport(); setTab('manual'); onClose(); };
 
   const handleManualSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    addEvent({ title, date: new Date(date + 'T12:00:00'), time: time || undefined, status, episode, company, companyId, cutNumber: parseInt(cutNumber), platforms: platforms || undefined, notes: notes || undefined });
+    addEvent({ title, date: new Date(date + 'T12:00:00'), time: time || undefined, status, episode, company, companyId, cutNumber: parseInt(cutNumber), platforms: platforms || undefined, notes: notes || undefined, linkProducao: linkProducao.trim() || undefined, publishedLinks: pubLinks.filter(p => p.channel || p.url) });
     resetManual();
     handleClose();
   };
@@ -216,6 +224,63 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
                   <label>Observações</label>
                   <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Detalhes adicionais..." />
                 </div>
+
+                {/* Link de Produção */}
+                <div className={styles.field}>
+                  <label><Link2 size={11} style={{ display: 'inline', marginRight: 4 }} />Link de Produção</label>
+                  <input
+                    type="text"
+                    value={linkProducao}
+                    onChange={e => setLinkProducao(e.target.value)}
+                    placeholder="Cole o link (Drive, Dropbox...)"
+                  />
+                </div>
+
+                {/* Links dos conteúdos publicados — só quando postado */}
+                {status === 'postado' && (
+                  <div className={styles.pubLinksSection}>
+                    <div className={styles.pubLinksSectionTitle}>
+                      <CheckCircle2 size={13} /> Links dos Conteúdos Publicados
+                    </div>
+                    {pubLinks.length === 0 && (
+                      <div className={styles.pubLinksEmpty}>Nenhum link adicionado ainda.</div>
+                    )}
+                    <div className={styles.pubLinksList}>
+                      {pubLinks.map((pl, idx) => {
+                        const color = PLATFORM_COLOR[pl.channel] ?? '#6b7280';
+                        return (
+                          <div
+                            key={idx}
+                            className={styles.pubLinkRow}
+                            style={{ borderLeftColor: pl.channel ? color : '#bbf7d0' }}
+                          >
+                            <select
+                              className={styles.pubLinkSelect}
+                              value={pl.channel}
+                              onChange={e => changePubLink(idx, 'channel', e.target.value)}
+                              style={pl.channel ? { color, borderColor: `${color}50`, fontWeight: 700 } : {}}
+                            >
+                              <option value="">Plataforma...</option>
+                              {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                            <input
+                              className={styles.pubLinkUrl}
+                              placeholder={`Cole o link do ${pl.channel || 'conteúdo'}...`}
+                              value={pl.url}
+                              onChange={e => changePubLink(idx, 'url', e.target.value)}
+                            />
+                            <button type="button" className={styles.pubLinkRemove} onClick={() => removePubLink(idx)} title="Remover">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button type="button" className={styles.pubLinkAdd} onClick={addPubLink}>
+                      <Plus size={13} /> Adicionar link
+                    </button>
+                  </div>
+                )}
 
                 <div className={styles.footer}>
                   <button type="button" onClick={handleClose} className={styles.cancelBtn}>Cancelar</button>

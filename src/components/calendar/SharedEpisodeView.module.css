@@ -317,10 +317,14 @@
 
 /* ── Rodapé ──────────────────────────────────────────────────────────────── */
 .footer {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   font-size: 12px;
   color: #9ca3af;
-  padding: 8px;
+  padding: 12px 8px;
 }
 
 /* ── Not found ───────────────────────────────────────────────────────────── */

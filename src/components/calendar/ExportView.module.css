@@ -387,6 +387,22 @@
 }
 .rowPubUrl:hover { text-decoration: underline; }
 
+/* ── Separador de grupo (modo calendário completo) ──────────────────────── */
+.groupDivider {
+  padding: 9px 32px;
+  background: #f0fdf4;
+  border-top: 2px solid #d1fae5;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a3a2e;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 /* ── Resumo stats ─────────────────────────────────────────────────────────── */
 .stats {
   display: flex;

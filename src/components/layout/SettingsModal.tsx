@@ -1,48 +1,175 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Building2, User, Save, CheckCircle2, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWorkspace } from '../../hooks/useWorkspace';
+import styles from './SettingsModal.module.css';
 
-interface SettingsModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const { settings, update } = useWorkspace();
+  const [tab, setTab] = useState<'org' | 'user'>('org');
+  const [toast, setToast] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Local draft state
+  const [orgName, setOrgName] = useState(settings.orgName);
+  const [orgEmail, setOrgEmail] = useState(settings.orgEmail);
+  const [orgLogo, setOrgLogo] = useState(settings.orgLogo);
+  const [userName, setUserName] = useState(settings.userName);
+  const [userEmail, setUserEmail] = useState(settings.userEmail);
+  const [userRole, setUserRole] = useState(settings.userRole);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setOrgLogo(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = () => {
+    update({ orgName, orgEmail, orgLogo, userName, userEmail, userRole });
+    setToast(true);
+    setTimeout(() => { setToast(false); onClose(); }, 1200);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          style={{ width: '500px', background: 'white', borderRadius: '16px', overflow: 'hidden' }} 
-          onClick={e => e.stopPropagation()}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', borderBottom: '1px solid var(--border)' }}>
-            <h2 style={{ margin: 0, fontSize: '18px' }}>Configurações do Sistema</h2>
-            <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer' }}><X size={20} /></button>
-          </div>
-          <div style={{ padding: '20px' }}>
-            <p style={{ color: 'var(--text-muted)' }}>Configurações gerais do sistema em desenvolvimento.</p>
-            <div style={{ marginTop: '20px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <input type="checkbox" defaultChecked />
-                Notificações por E-mail
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <input type="checkbox" defaultChecked />
-                Lembretes no WhatsApp
-              </label>
+    <>
+      <AnimatePresence>
+        <div className={styles.overlay} onClick={onClose}>
+          <motion.div
+            className={styles.modal}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className={styles.header}>
+              <h2>Configurações</h2>
+              <button className={styles.closeBtn} onClick={onClose}><X size={20} /></button>
             </div>
-          </div>
-          <div style={{ padding: '16px 20px', background: '#f9fafb', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={onClose} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Salvar Configurações</button>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+
+            <div className={styles.tabs}>
+              <button
+                className={`${styles.tab} ${tab === 'org' ? styles.tabActive : ''}`}
+                onClick={() => setTab('org')}
+              >
+                <Building2 size={14} /> Empresa
+              </button>
+              <button
+                className={`${styles.tab} ${tab === 'user' ? styles.tabActive : ''}`}
+                onClick={() => setTab('user')}
+              >
+                <User size={14} /> Meu Perfil
+              </button>
+            </div>
+
+            <div className={styles.body}>
+              {tab === 'org' ? (
+                <>
+                  {/* Logo */}
+                  <div className={styles.logoSection}>
+                    <div className={styles.logoPreview} onClick={() => fileRef.current?.click()} title="Clique para trocar o logo">
+                      {orgLogo
+                        ? <img src={orgLogo} alt="Logo" />
+                        : <ImagePlus size={28} color="var(--text-muted)" />
+                      }
+                    </div>
+                    <div className={styles.logoUploadInfo}>
+                      <span className={styles.logoUploadTitle}>Logotipo da empresa</span>
+                      <span className={styles.logoUploadHint}>PNG, JPG ou SVG. Recomendado 200×200px.</span>
+                      <button className={styles.logoUploadBtn} onClick={() => fileRef.current?.click()}>
+                        {orgLogo ? 'Trocar imagem' : 'Enviar imagem'}
+                      </button>
+                      {orgLogo && (
+                        <button className={styles.logoRemoveBtn} onClick={() => setOrgLogo('')}>
+                          Remover
+                        </button>
+                      )}
+                      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoUpload} />
+                    </div>
+                  </div>
+
+                  <div className={styles.divider} />
+
+                  <div className={styles.field}>
+                    <label>Nome da empresa / podcast</label>
+                    <input
+                      type="text"
+                      value={orgName}
+                      onChange={e => setOrgName(e.target.value)}
+                      placeholder="Ex: AgroIdeas"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>E-mail de contato</label>
+                    <input
+                      type="email"
+                      value={orgEmail}
+                      onChange={e => setOrgEmail(e.target.value)}
+                      placeholder="contato@agroideas.com.br"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.field}>
+                    <label>Nome</label>
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={e => setUserName(e.target.value)}
+                      placeholder="Seu nome"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>E-mail</label>
+                    <input
+                      type="email"
+                      value={userEmail}
+                      onChange={e => setUserEmail(e.target.value)}
+                      placeholder="seu@email.com.br"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Cargo / Função</label>
+                    <input
+                      type="text"
+                      value={userRole}
+                      onChange={e => setUserRole(e.target.value)}
+                      placeholder="Ex: Produtora, Editor..."
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className={styles.footer}>
+              <button className={styles.cancelBtn} onClick={onClose}>Cancelar</button>
+              <button className={styles.saveBtn} onClick={handleSave}>
+                <Save size={14} /> Salvar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+
+      {toast && (
+        <div className={styles.toast}>
+          <CheckCircle2 size={16} /> Configurações salvas!
+        </div>
+      )}
+    </>
   );
 };
+
 export default SettingsModal;

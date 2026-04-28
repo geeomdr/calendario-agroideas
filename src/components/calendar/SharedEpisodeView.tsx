@@ -3,6 +3,7 @@ import {
   Building2, User, Mic, Calendar, Scissors, CheckCircle2, Clock,
   Film, AlertCircle, Edit3, FileDown, FileText, Link2, ExternalLink, Tag, ChevronDown,
 } from 'lucide-react';
+import { SocialLinksBar } from './socialLinks';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useEvents } from '../../contexts/EventsContext';
@@ -374,7 +375,8 @@ const SharedEpisodeView: React.FC<Props> = ({ episodeName }) => {
         )}
 
         <div className={styles.footer}>
-          Gerado em {today} · AgroIdeas Calendário Editorial
+          <SocialLinksBar size={20} />
+          <span>Gerado em {today} · AgroIdeas Calendário Editorial</span>
         </div>
       </div>
     </div>

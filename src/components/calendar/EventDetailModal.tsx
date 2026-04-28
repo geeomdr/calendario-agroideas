@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar, Building2, Tag, FileText, Hash, CheckCircle2, Clock, Edit3, Film, AlertCircle, Trash2, AlertTriangle, Link2, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Calendar, Building2, Tag, FileText, Hash, CheckCircle2, Clock, Edit3, Film, AlertCircle, Trash2, AlertTriangle, Link2, Plus, Save, ExternalLink } from 'lucide-react';
 import { useEvents } from '../../contexts/EventsContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { AgroEvent, Status } from '../../types';
 import styles from './EventDetailModal.module.css';
+import { PLATFORMS, PLATFORM_COLOR } from './platformOptions';
 
 const STATUS_ICON: Record<Status, React.ReactNode> = {
   postado: <CheckCircle2 size={16} />,
@@ -33,33 +34,58 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
   const event = initialEvent ? events.find(e => e.id === initialEvent.id) || initialEvent : null;
 
   const [confirming, setConfirming] = useState(false);
+  const [confirmingClose, setConfirmingClose] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
+  // Estado local dos links (controlado)
+  const [linkProducao, setLinkProducao] = useState(event?.linkProducao ?? '');
+  const [pubLinks, setPubLinks] = useState<{ channel: string; url: string }[]>(event?.publishedLinks ?? []);
+
+  // Valores de referência para detectar mudanças não salvas
+  const savedRef = useRef({ linkProducao: event?.linkProducao ?? '', pubLinks: JSON.stringify(event?.publishedLinks ?? []) });
+
+  const isDirty =
+    linkProducao !== savedRef.current.linkProducao ||
+    JSON.stringify(pubLinks) !== savedRef.current.pubLinks;
+
   // Reseta estado ao abrir um evento diferente
   useEffect(() => {
+    const link = initialEvent?.linkProducao ?? '';
+    const pub = initialEvent?.publishedLinks ?? [];
     setConfirming(false);
+    setConfirmingClose(false);
     setDeleting(false);
     setToast(null);
+    setLinkProducao(link);
+    setPubLinks(pub);
+    savedRef.current = { linkProducao: link, pubLinks: JSON.stringify(pub) };
   }, [initialEvent?.id]);
-
-  // ── Links helpers ──────────────────────────────────────────────────────
-  const pubLinks = event?.publishedLinks ?? [];
-
-  const updatePubLinks = (updated: { channel: string; url: string }[]) => {
-    if (!event) return;
-    updateEvent(event.id, { publishedLinks: updated });
-  };
-
-  const addPubLink = () => updatePubLinks([...pubLinks, { channel: '', url: '' }]);
-  const removePubLink = (idx: number) => updatePubLinks(pubLinks.filter((_, i) => i !== idx));
-  const changePubLink = (idx: number, field: 'channel' | 'url', value: string) => {
-    updatePubLinks(pubLinks.map((p, i) => i === idx ? { ...p, [field]: value } : p));
-  };
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  // Fecha com verificação de mudanças não salvas
+  const handleClose = () => {
+    if (isDirty) {
+      setConfirmingClose(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleSave = () => {
+    if (!event) return;
+    const filteredPub = pubLinks.filter(p => p.channel || p.url);
+    updateEvent(event.id, {
+      linkProducao: linkProducao.trim() || undefined,
+      publishedLinks: filteredPub,
+    });
+    savedRef.current = { linkProducao: linkProducao.trim(), pubLinks: JSON.stringify(filteredPub) };
+    showToast('success', 'Links salvos!');
+    setTimeout(onClose, 800);
   };
 
   const handleDeleteConfirm = async () => {
@@ -76,11 +102,16 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
     }
   };
 
+  const addPubLink = () => setPubLinks(prev => [...prev, { channel: '', url: '' }]);
+  const removePubLink = (idx: number) => setPubLinks(prev => prev.filter((_, i) => i !== idx));
+  const changePubLink = (idx: number, field: 'channel' | 'url', value: string) =>
+    setPubLinks(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+
   return (
     <>
       <AnimatePresence>
         {event && (
-          <div className={styles.overlay} onClick={confirming ? undefined : onClose}>
+          <div className={styles.overlay} onClick={confirming || confirmingClose ? undefined : handleClose}>
             <motion.div
               className={styles.modal}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -93,7 +124,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   <span className={styles.episodeLabel}>{event.episode}</span>
                   <h2 className={styles.title}>{event.title}</h2>
                 </div>
-                <button onClick={onClose} className={styles.closeBtn} disabled={deleting}><X size={22} /></button>
+                <button onClick={handleClose} className={styles.closeBtn} disabled={deleting}><X size={22} /></button>
               </div>
 
               <div className={styles.body}>
@@ -193,13 +224,19 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   </div>
                   <div className={styles.linkRow}>
                     <div className={styles.linkLabel}>Link do arquivo de produção</div>
-                    <input
-                      key={event.id + '-prod'}
-                      className={styles.linkInput}
-                      placeholder="Cole o link aqui (Drive, Dropbox...)"
-                      defaultValue={event.linkProducao ?? ''}
-                      onBlur={e => updateEvent(event.id, { linkProducao: e.target.value.trim() || undefined })}
-                    />
+                    <div className={styles.linkInputWrapper}>
+                      <input
+                        className={styles.linkInput}
+                        placeholder="Cole o link aqui (Drive, Dropbox...)"
+                        value={linkProducao}
+                        onChange={e => setLinkProducao(e.target.value)}
+                      />
+                      {linkProducao.trim() && (
+                        <a href={linkProducao.trim()} target="_blank" rel="noopener noreferrer" className={styles.linkOpenBtn} title="Abrir link">
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -209,27 +246,45 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                     <div className={styles.pubLinksSectionTitle}>
                       <CheckCircle2 size={13} /> Links dos Conteúdos Publicados
                     </div>
-                    {pubLinks.map((pl, idx) => (
-                      <div key={idx} className={styles.pubLinkRow}>
-                        <input
-                          className={styles.pubLinkChannel}
-                          placeholder="Canal / Plataforma"
-                          value={pl.channel}
-                          onChange={e => changePubLink(idx, 'channel', e.target.value)}
-                          onBlur={() => updatePubLinks(pubLinks)}
-                        />
-                        <input
-                          className={styles.pubLinkUrl}
-                          placeholder="https://..."
-                          value={pl.url}
-                          onChange={e => changePubLink(idx, 'url', e.target.value)}
-                          onBlur={() => updatePubLinks(pubLinks)}
-                        />
-                        <button type="button" className={styles.pubLinkRemove} onClick={() => removePubLink(idx)} title="Remover">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
+                    {pubLinks.length === 0 && (
+                      <div className={styles.pubLinksEmpty}>Nenhum link adicionado ainda.</div>
+                    )}
+                    <div className={styles.pubLinksList}>
+                      {pubLinks.map((pl, idx) => {
+                        const color = PLATFORM_COLOR[pl.channel] ?? '#6b7280';
+                        return (
+                          <div
+                            key={idx}
+                            className={styles.pubLinkRow}
+                            style={{ borderLeftColor: pl.channel ? color : '#bbf7d0' }}
+                          >
+                            <select
+                              className={styles.pubLinkSelect}
+                              value={pl.channel}
+                              onChange={e => changePubLink(idx, 'channel', e.target.value)}
+                              style={pl.channel ? { color, borderColor: `${color}50`, fontWeight: 700 } : {}}
+                            >
+                              <option value="">Plataforma...</option>
+                              {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                            <input
+                              className={styles.pubLinkUrl}
+                              placeholder={`Cole o link do ${pl.channel || 'conteúdo'}...`}
+                              value={pl.url}
+                              onChange={e => changePubLink(idx, 'url', e.target.value)}
+                            />
+                            {pl.url.trim() && (
+                              <a href={pl.url.trim()} target="_blank" rel="noopener noreferrer" className={styles.pubLinkOpenBtn} title="Abrir link">
+                                <ExternalLink size={12} />
+                              </a>
+                            )}
+                            <button type="button" className={styles.pubLinkRemove} onClick={() => removePubLink(idx)} title="Remover">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                     <button type="button" className={styles.pubLinkAdd} onClick={addPubLink}>
                       <Plus size={13} /> Adicionar link
                     </button>
@@ -246,14 +301,47 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   <Trash2 size={15} />
                   Excluir corte
                 </button>
-                <button onClick={onClose} className={styles.closeActionBtn} disabled={deleting}>Fechar</button>
+                <button onClick={handleSave} className={styles.closeActionBtn} disabled={deleting}>
+                  <Save size={14} /> Salvar
+                </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* ── Modal de confirmação ─────────────────────────────────────── */}
+      {/* ── Confirmar fechar com mudanças não salvas ──────────────────── */}
+      {confirmingClose && (
+        <div className={styles.confirmOverlay} onClick={() => setConfirmingClose(false)}>
+          <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>
+            <div className={styles.confirmHeader} style={{ background: '#fffbeb', borderBottomColor: '#fde68a' }}>
+              <div className={styles.confirmIconWrap} style={{ background: '#fef3c7' }}>
+                <AlertTriangle size={24} color="#d97706" />
+              </div>
+              <div className={styles.confirmTitle} style={{ color: '#92400e' }}>Alterações não salvas</div>
+            </div>
+            <div className={styles.confirmBody}>
+              <p className={styles.confirmMsg}>
+                Você tem alterações que ainda não foram salvas.<br />Se sair agora, elas serão perdidas.
+              </p>
+            </div>
+            <div className={styles.confirmActions}>
+              <button className={styles.confirmCancelBtn} onClick={() => setConfirmingClose(false)}>
+                Continuar editando
+              </button>
+              <button
+                className={styles.confirmDeleteBtn}
+                style={{ background: '#d97706' }}
+                onClick={onClose}
+              >
+                Sair sem salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de confirmação (excluir) ───────────────────────────── */}
       {confirming && event && (
         <div className={styles.confirmOverlay} onClick={() => !deleting && setConfirming(false)}>
           <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>

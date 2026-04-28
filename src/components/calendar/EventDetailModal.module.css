@@ -21,8 +21,8 @@
 .fieldValue { font-size: 14px; font-weight: 500; color: var(--text-main); text-transform: capitalize; }
 
 .footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.closeActionBtn { padding: 10px 24px; border-radius: var(--radius); font-weight: 600; font-size: 14px; border: 1px solid var(--border); color: var(--text-main); background: white; }
-.closeActionBtn:hover { background: #f9fafb; }
+.closeActionBtn { display: flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: var(--radius); font-weight: 600; font-size: 14px; border: none; color: white; background: var(--primary); cursor: pointer; }
+.closeActionBtn:hover { background: var(--primary-light); }
 .closeActionBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Links section ── */
@@ -34,20 +34,49 @@
 .linkInput { flex: 1; font-size: 13px; padding: 7px 10px; border-radius: var(--radius); border: 1px solid var(--border); outline: none; font-family: inherit; color: var(--text-main); background: white; }
 .linkInput:focus { border-color: var(--primary); }
 .linkInput::placeholder { color: #c0c4cc; }
-.linkAnchor { font-size: 12px; color: var(--primary); text-decoration: underline; word-break: break-all; }
-.linkAnchor:hover { opacity: 0.8; }
+.linkOpenBtn { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius); background: var(--primary); color: white; transition: background 0.15s, opacity 0.15s; }
+.linkOpenBtn:hover { background: var(--primary-light); }
+.pubLinkOpenBtn { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: #166534; color: white; opacity: 0.85; transition: opacity 0.15s; }
+.pubLinkOpenBtn:hover { opacity: 1; }
 
 /* ── Published links section ── */
 .pubLinksSection { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: #f0fdf4; border-radius: var(--radius); border: 1px solid #bbf7d0; }
 .pubLinksSectionTitle { font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.4px; display: flex; align-items: center; gap: 6px; }
-.pubLinkRow { display: flex; align-items: center; gap: 6px; }
-.pubLinkChannel { width: 110px; flex-shrink: 0; font-size: 12px; padding: 7px 9px; border-radius: var(--radius); border: 1px solid #bbf7d0; outline: none; font-family: inherit; background: white; }
-.pubLinkChannel:focus { border-color: #22c55e; }
-.pubLinkUrl { flex: 1; font-size: 12px; padding: 7px 9px; border-radius: var(--radius); border: 1px solid #bbf7d0; outline: none; font-family: inherit; background: white; }
-.pubLinkUrl:focus { border-color: #22c55e; }
-.pubLinkRemove { color: #dc2626; flex-shrink: 0; opacity: 0.6; }
+.pubLinksList { display: flex; flex-direction: column; gap: 8px; }
+.pubLinksEmpty { font-size: 12px; color: #9ca3af; font-style: italic; padding: 4px 0 2px; }
+.pubLinkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid #dcfce7;
+  border-left: 4px solid #bbf7d0;
+  transition: border-left-color 0.2s;
+}
+.pubLinkSelect {
+  width: 148px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, color 0.15s;
+  color: #6b7280;
+}
+.pubLinkSelect:focus { border-color: #22c55e; }
+.pubLinkUrl { flex: 1; font-size: 12px; padding: 6px 9px; border-radius: 6px; border: 1px solid #d1d5db; outline: none; font-family: inherit; background: #f9fafb; min-width: 0; }
+.pubLinkUrl:focus { border-color: #22c55e; background: white; }
+.pubLinkUrl::placeholder { color: #c0c4cc; }
+.pubLinkRemove { color: #dc2626; flex-shrink: 0; opacity: 0.5; padding: 2px; }
 .pubLinkRemove:hover { opacity: 1; }
-.pubLinkAdd { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #166534; padding: 5px 0; }
+.pubLinkAdd { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #166534; padding: 4px 0 2px; }
 .pubLinkAdd:hover { opacity: 0.75; }
 
 /* ── Delete button ── */

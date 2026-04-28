@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import MonthView from './components/calendar/MonthView';
@@ -74,27 +74,45 @@ function AppInner() {
     return <SharedEpisodeView episodeName={episodeName} />;
   }
 
-  const handleWhatsApp = () => {
+  const PHONE = '5544997704635';
+  const scheduledRef = useRef(false);
+
+  const buildDailyText = useCallback(() => {
     const today = new Date();
     const todayStr = today.toDateString();
     const todayEvents = events.filter(e => e.date.toDateString() === todayStr);
     const dateLabel = today.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
-    let text: string;
     if (todayEvents.length === 0) {
-      text = `📅 *AgroIdeas — ${dateLabel}*\n\nNenhuma postagem agendada para hoje.`;
-    } else {
-      const lines = todayEvents.map(e => {
-        const horario = e.time ? `\n  🕐 Horário: *${e.time}*` : '';
-        const plat = e.platforms ? `\n  📲 Plataformas: ${e.platforms}` : '';
-        return `• *${e.episode}* — Corte #${e.cutNumber}\n  ${e.title}${horario}\n  Status: ${e.status}${plat}`;
-      });
-      text = `📅 *AgroIdeas — Postagens de Hoje*\n${dateLabel}\n\n${lines.join('\n\n')}`;
+      return `📅 *AgroIdeas — ${dateLabel}*\n\nNenhuma postagem agendada para hoje.`;
     }
+    const lines = todayEvents.map(e => {
+      const horario = e.time ? `\n  🕐 Horário: *${e.time}*` : '';
+      const plat = e.platforms ? `\n  📲 Plataformas: ${e.platforms}` : '';
+      return `• *${e.episode}* — Corte #${e.cutNumber}\n  ${e.title}${horario}\n  Status: ${e.status}${plat}`;
+    });
+    return `📅 *AgroIdeas — Postagens de Hoje*\n${dateLabel}\n\n${lines.join('\n\n')}`;
+  }, [events]);
 
-    const phone = '5544997704635';
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+  const handleWhatsApp = () => {
+    const text = buildDailyText();
+    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`, '_blank');
   };
+
+  // Dispara automaticamente às 18:00 se o app estiver aberto
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      if (now.getHours() === 18 && now.getMinutes() === 0 && !scheduledRef.current) {
+        scheduledRef.current = true;
+        window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(buildDailyText())}`, '_blank');
+        setTimeout(() => { scheduledRef.current = false; }, 60 * 1000);
+      }
+      if (now.getHours() === 0 && now.getMinutes() === 0) scheduledRef.current = false;
+    };
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
+  }, [buildDailyText]);
 
     const renderView = () => {
       switch (currentView) {

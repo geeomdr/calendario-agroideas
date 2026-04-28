@@ -4,6 +4,7 @@ import { LayoutDashboard, ListTodo, CalendarDays, Settings, Plus, Mic, Building2
 import type { ViewType } from '../../types';
 import logoAgroideas from '../../assets/logo-agroideas.png';
 import { SocialLinksBar } from '../calendar/socialLinks';
+import { useWorkspace } from '../../hooks/useWorkspace';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -13,6 +14,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onAddClick, onSettingsClick }) => {
+  const { settings } = useWorkspace();
   const menuItems: { id: ViewType; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'month', label: 'Calendário', icon: <CalendarDays size={20} /> },
@@ -30,7 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onAddClick
       </div>
       <button className={styles.addButton} onClick={onAddClick}><Plus size={20} /><span>Novo Corte</span></button>
       <nav className={styles.nav}>
-        <div className={styles.sectionTitle}>Vistas</div>
         {menuItems.map((item) => (
           <button
             key={item.id}
@@ -50,10 +51,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onAddClick
         </div>
 
         <div className={styles.userProfile}>
-          <div className={styles.avatar}>G</div>
+          <div className={styles.avatar}>
+            {settings.orgLogo
+              ? <img src={settings.orgLogo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
+              : settings.userName.charAt(0).toUpperCase()
+            }
+          </div>
           <div className={styles.userInfo}>
-            <div className={styles.userName}>Geovana</div>
-            <div className={styles.userRole}>Produtora</div>
+            <div className={styles.userName}>{settings.userName}</div>
+            <div className={styles.userRole}>{settings.userRole}</div>
           </div>
         </div>
       </div>
