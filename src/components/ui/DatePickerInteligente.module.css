@@ -1,0 +1,215 @@
+/* ── Wrapper ──────────────────────────────────────────────────────────────── */
+.wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Trigger (botão que abre o popover) ──────────────────────────────────── */
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.trigger:hover,
+.triggerOpen {
+  border-color: var(--primary);
+}
+
+.triggerIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.triggerValue {
+  flex: 1;
+  color: var(--text-main);
+}
+
+.triggerPlaceholder {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.clearBtn {
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1;
+  padding: 0 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.1s, background 0.1s;
+}
+
+.clearBtn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+/* ── Popover ──────────────────────────────────────────────────────────────── */
+.popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+  width: 320px;
+  min-width: 100%;
+}
+
+/* ── Navegação de mês ────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.1s;
+}
+
+.navBtn:hover {
+  background: #f3f4f6;
+  color: var(--text-main);
+}
+
+.monthLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-transform: capitalize;
+}
+
+/* ── Grade do calendário ─────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.dayHeader {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px 0 8px;
+  text-transform: uppercase;
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+  transition: opacity 0.1s;
+}
+
+/* ── Status das datas ────────────────────────────────────────────────────── */
+
+/* Disponível: verde claro */
+.available {
+  background: #EAF3DE;
+  color: #3B6D11;
+  cursor: pointer;
+}
+.available:hover { opacity: 0.72; }
+
+/* Ocupado: vermelho claro — episódio já marcado */
+.occupied {
+  background: #FCEBEB;
+  color: #A32D2D;
+  cursor: not-allowed;
+}
+
+/* Bloqueado: laranja claro — dentro do intervalo mínimo de 5 dias */
+.blocked {
+  background: #FEF3E2;
+  color: #854F0B;
+  cursor: not-allowed;
+}
+
+/* Passado: cinza neutro, não selecionável */
+.past {
+  color: #d1d5db;
+  cursor: default;
+}
+
+/* Hoje: verde escuro, texto branco */
+.today {
+  background: var(--primary-dark, #166534);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+}
+.today:hover { opacity: 0.85; }
+
+/* Selecionado */
+.selected {
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--primary-dark, #166534);
+}
+.selected:hover { opacity: 0.9; }
+
+/* ── Legenda ─────────────────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dotAvailable { background: #EAF3DE; border: 1px solid #3B6D11; }
+.dotOccupied  { background: #FCEBEB; border: 1px solid #A32D2D; }
+.dotBlocked   { background: #FEF3E2; border: 1px solid #854F0B; }

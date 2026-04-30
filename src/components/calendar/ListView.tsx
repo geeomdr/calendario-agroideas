@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useEvents } from '../../contexts/EventsContext';
 import styles from './ListView.module.css';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Tag, Building2, Mic, User } from 'lucide-react';
+import { Calendar, Tag, Building2, Mic, User, Search, X, ChevronDown } from 'lucide-react';
 import type { AgroEvent, Status } from '../../types';
 
 const STATUS_LABEL: Record<Status, string> = {
@@ -30,10 +30,36 @@ const ListView: React.FC<ListViewProps> = ({ onEventClick }) => {
   const { events, episodes, companies } = useEvents();
   const [filterCompany, setFilterCompany] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [episodesOpen, setEpisodesOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem('episodios-section-open') === 'true'; } catch { return false; }
+  });
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(value), 250);
+  };
+
+  const clearSearch = () => { setSearchQuery(''); setDebouncedQuery(''); };
 
   const filtered = events
     .filter(e => !filterCompany || e.companyId === filterCompany || e.company === filterCompany)
     .filter(e => !filterStatus || e.status === filterStatus)
+    .filter(e => {
+      if (!debouncedQuery) return true;
+      const q = debouncedQuery.toLowerCase();
+      const ep = episodes.find(ep => ep.name === e.episode);
+      return (
+        e.episode.toLowerCase().includes(q) ||
+        e.company.toLowerCase().includes(q) ||
+        (ep?.guest ?? '').toLowerCase().includes(q) ||
+        `#${e.cutNumber}`.includes(q) ||
+        String(e.cutNumber) === q
+      );
+    })
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   // Group by episode
@@ -51,6 +77,21 @@ const ListView: React.FC<ListViewProps> = ({ onEventClick }) => {
           <p>{filtered.length} cortes · {episodes.length} episódios</p>
         </div>
         <div className={styles.filters}>
+          <div className={styles.searchWrapper}>
+            <Search size={15} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="text"
+              placeholder="Buscar por episódio, empresa ou pessoa..."
+              value={searchQuery}
+              onChange={e => handleSearch(e.target.value)}
+            />
+            {searchQuery && (
+              <button className={styles.searchClear} onClick={clearSearch} title="Limpar busca">
+                <X size={14} />
+              </button>
+            )}
+          </div>
           <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className={styles.filterSelect}>
             <option value="">Todas as empresas</option>
             {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -68,12 +109,24 @@ const ListView: React.FC<ListViewProps> = ({ onEventClick }) => {
 
       {episodes.length > 0 && (
         <div className={styles.episodesSection}>
-          <div className={styles.episodesSectionHeader}>
+          <div
+            className={styles.episodesSectionHeader}
+            onClick={() => setEpisodesOpen(prev => {
+              const next = !prev;
+              try { localStorage.setItem('episodios-section-open', String(next)); } catch {}
+              return next;
+            })}
+          >
             <Mic size={18} />
             <h3>Episódios Cadastrados</h3>
             <span className={styles.episodesCount}>{episodes.length}</span>
+            <ChevronDown
+              size={16}
+              className={styles.episodesChevron}
+              style={{ transform: episodesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            />
           </div>
-          <div className={styles.episodesList}>
+          <div className={`${styles.episodesList} ${episodesOpen ? styles.episodesListOpen : ''}`}>
             {[...episodes]
               .sort((a, b) => {
                 if (a.episodeNumber == null && b.episodeNumber == null) {
@@ -112,6 +165,16 @@ const ListView: React.FC<ListViewProps> = ({ onEventClick }) => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {Object.keys(grouped).length === 0 && (debouncedQuery || filterCompany || filterStatus) && (
+        <div className={styles.emptyState}>
+          <Search size={36} strokeWidth={1.2} />
+          <p>Nenhum corte encontrado{debouncedQuery ? ` para "${debouncedQuery}"` : ''}.</p>
+          <button onClick={() => { clearSearch(); setFilterCompany(''); setFilterStatus(''); }}>
+            Limpar filtros
+          </button>
         </div>
       )}
 

@@ -3,9 +3,22 @@
 .header h2 { font-size: 22px; margin-bottom: 4px; }
 .header p { color: var(--text-muted); font-size: 13px; }
 
-.filters { display: flex; gap: 10px; }
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .filterSelect { padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); font-size: 13px; font-family: inherit; background: white; color: var(--text-main); cursor: pointer; }
 .filterSelect:focus { outline: none; border-color: var(--primary-light); }
+
+.searchWrapper { position: relative; display: flex; align-items: center; }
+.searchIcon { position: absolute; left: 10px; color: var(--text-muted); pointer-events: none; flex-shrink: 0; }
+.searchInput { padding: 8px 32px 8px 32px; border-radius: var(--radius); border: 1px solid var(--border); font-size: 13px; font-family: inherit; background: white; color: var(--text-main); width: 260px; outline: none; transition: border-color 0.2s; }
+.searchInput:focus { border-color: var(--primary-light); }
+.searchInput::placeholder { color: #c0c4cc; }
+.searchClear { position: absolute; right: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); padding: 2px; border-radius: 4px; transition: color 0.15s; }
+.searchClear:hover { color: var(--text-main); }
+
+.emptyState { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 64px 24px; color: var(--text-muted); text-align: center; }
+.emptyState p { font-size: 14px; font-weight: 500; }
+.emptyState button { font-size: 13px; font-weight: 600; color: var(--primary); padding: 6px 16px; border: 1px solid var(--primary); border-radius: var(--radius); transition: background 0.15s; }
+.emptyState button:hover { background: #f0fdf4; }
 
 .groups { display: flex; flex-direction: column; gap: 20px; }
 
@@ -49,10 +62,13 @@
 
 /* Episodes section */
 .episodesSection { background: white; border-radius: var(--radius-lg); border: 1px solid #fdba74; overflow: hidden; box-shadow: var(--shadow-sm); }
-.episodesSectionHeader { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff7ed; border-bottom: 1px solid #fdba74; color: #c2410c; }
+.episodesSectionHeader { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #fff7ed; color: #c2410c; cursor: pointer; user-select: none; transition: background 0.15s; }
+.episodesSectionHeader:hover { background: #ffedd5; }
 .episodesSectionHeader h3 { font-size: 15px; font-weight: 700; margin: 0; flex: 1; }
 .episodesCount { font-size: 12px; font-weight: 700; background: #ea580c; color: white; padding: 2px 10px; border-radius: 20px; }
-.episodesList { display: flex; flex-direction: column; }
+.episodesChevron { color: #ea580c; flex-shrink: 0; transition: transform 0.25s ease; }
+.episodesList { display: flex; flex-direction: column; max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.episodesListOpen { max-height: 2000px; }
 .episodeCard { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); transition: background 0.15s; }
 .episodeCard:last-child { border-bottom: none; }
 .episodeCard:hover { background: #fffbf5; }

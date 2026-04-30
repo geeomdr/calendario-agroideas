@@ -45,5 +45,6 @@ export interface EpisodeRecord {
   linkCarrossel?: string;
   linkThumbnail?: string;
   publishedLinks?: { channel: string; url: string }[];
+  instagramCollabs?: string[];
 }
 

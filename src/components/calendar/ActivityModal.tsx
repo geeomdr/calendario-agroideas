@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { X, Upload, FileSpreadsheet, AlertCircle, Link2, CheckCircle2, Plus } from 'lucide-react';
 import { useEvents } from '../../contexts/EventsContext';
 import type { Status, AgroEvent } from '../../types';
@@ -7,16 +7,22 @@ import styles from './ActivityModal.module.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
 import { PLATFORMS, PLATFORM_COLOR } from './platformOptions';
+import {
+  getOccupancy, getConflictingPlatforms, formatDateBR,
+  PANEL_PLATFORMS, MAX_PER_PLATFORM,
+} from '../../lib/platformUtils';
 
 interface ActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultEpisode?: string;
+  defaultCompanyId?: string;
 }
 
 const REQUIRED_COLS = ['title', 'date', 'episode', 'company'];
 
-const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
-  const { addEvent, addEvents, companies } = useEvents();
+const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, defaultEpisode, defaultCompanyId }) => {
+  const { addEvent, addEvents, companies, events } = useEvents();
   const [tab, setTab] = useState<'manual' | 'import'>('manual');
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
@@ -26,6 +32,17 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
   const [episode, setEpisode] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [company, setCompany] = useState('');
+
+  // Pre-fill when modal opens with context (e.g. from episode edit form)
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (defaultEpisode) setEpisode(defaultEpisode);
+    if (defaultCompanyId) {
+      setCompanyId(defaultCompanyId);
+      const comp = companies.find(c => c.id === defaultCompanyId);
+      if (comp) setCompany(comp.name);
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cutNumber, setCutNumber] = useState('1');
   const [status, setStatus] = useState<Status>('em-aprovacao');
   const [time, setTime] = useState('');
@@ -33,6 +50,17 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
   const [notes, setNotes] = useState('');
   const [linkProducao, setLinkProducao] = useState('');
   const [pubLinks, setPubLinks] = useState<{ channel: string; url: string }[]>([]);
+
+  // Ocupação por plataforma para a data selecionada
+  const occupancy = useMemo(
+    () => (date ? getOccupancy(events, date) : {}),
+    [events, date],
+  );
+  const conflictingPlatforms = useMemo(
+    () => (date ? getConflictingPlatforms(occupancy, platforms) : []),
+    [occupancy, platforms, date],
+  );
+  const hasConflict = conflictingPlatforms.length > 0;
 
   // Import
   const fileRef = useRef<HTMLInputElement>(null);
@@ -52,6 +80,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
 
   const handleManualSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (hasConflict) return;
     addEvent({ title, date: new Date(date + 'T12:00:00'), time: time || undefined, status, episode, company, companyId, cutNumber: parseInt(cutNumber), platforms: platforms || undefined, notes: notes || undefined, linkProducao: linkProducao.trim() || undefined, publishedLinks: pubLinks.filter(p => p.channel || p.url) });
     resetManual();
     handleClose();
@@ -186,6 +215,45 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
+                {/* ── Painel de ocupação por plataforma ─────────────── */}
+                {date && (
+                  <div className={styles.occupancyPanel}>
+                    <span className={styles.occupancyTitle}>Ocupação do dia</span>
+                    <div className={styles.occupancyBadges}>
+                      {PANEL_PLATFORMS.map(p => {
+                        const count = occupancy[p] ?? 0;
+                        const vacancies = MAX_PER_PLATFORM - count;
+                        const level = count >= MAX_PER_PLATFORM ? 'full' : count >= 2 ? 'warn' : 'ok';
+                        const labelText = count >= MAX_PER_PLATFORM
+                          ? 'Lotado'
+                          : `${vacancies} vaga${vacancies !== 1 ? 's' : ''}`;
+                        return (
+                          <span
+                            key={p}
+                            className={`${styles.occupancyBadge} ${
+                              level === 'full' ? styles.occupancyFull
+                              : level === 'warn' ? styles.occupancyWarn
+                              : styles.occupancyOk
+                            }`}
+                          >
+                            <strong>{p}</strong>
+                            <span className={styles.occupancyCount}>{count}/{MAX_PER_PLATFORM}</span>
+                            <span className={styles.occupancyLabel}>{labelText}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {hasConflict && (
+                      <div className={styles.conflictWarning}>
+                        <AlertCircle size={13} />
+                        <span>
+                          <strong>{conflictingPlatforms.join(', ')}</strong> já atingiu o limite de {MAX_PER_PLATFORM} recortes em {formatDateBR(date)}. Escolha outra data ou altere as plataformas.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className={styles.row}>
                   <div className={styles.field}>
                     <label>Corte #</label>
@@ -284,7 +352,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose }) => {
 
                 <div className={styles.footer}>
                   <button type="button" onClick={handleClose} className={styles.cancelBtn}>Cancelar</button>
-                  <button type="submit" className={styles.submitBtn}>Criar Corte</button>
+                  <button type="submit" className={styles.submitBtn} disabled={hasConflict}>Criar Corte</button>
                 </div>
               </form>
             ) : (
