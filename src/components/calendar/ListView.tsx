@@ -35,7 +35,7 @@ const ListView: React.FC<ListViewProps> = ({ onEventClick }) => {
   const [episodesOpen, setEpisodesOpen] = useState<boolean>(() => {
     try { return localStorage.getItem('episodios-section-open') === 'true'; } catch { return false; }
   });
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);

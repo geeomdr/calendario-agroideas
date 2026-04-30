@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Trash2, Edit3, Check, X, Mic, Calendar, Building2, User, Sparkles, Film, AlertTriangle, Link2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,6 +10,8 @@ import EventDetailModal from './EventDetailModal';
 import ActivityModal from './ActivityModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './EpisodesView.module.css';
+import TagInput from '../ui/TagInput';
+import DatePickerInteligente, { isDateAvailable } from '../ui/DatePickerInteligente';
 
 type EpStatus = EpisodeRecord['status'];
 
@@ -40,6 +42,7 @@ const EMPTY: Omit<EpisodeRecord, 'id'> = {
   linkVideo: '',
   linkCarrossel: '',
   linkThumbnail: '',
+  instagramCollabs: [],
 };
 
 type Step = 'form' | 'ai';
@@ -61,6 +64,16 @@ const EpisodesView: React.FC = () => {
   const [editingCut, setEditingCut] = useState<AgroEvent | null>(null);
   const [showAddCut, setShowAddCut] = useState(false);
 
+  const [publishDateError, setPublishDateError] = useState<string | null>(null);
+
+  // Datas de publicação já ocupadas — exclui o episódio sendo editado
+  const occupiedDates = useMemo(() =>
+    episodes
+      .filter(ep => ep.publishDate != null && ep.id !== editingId)
+      .map(ep => format(ep.publishDate!, 'yyyy-MM-dd')),
+    [episodes, editingId]
+  );
+
   const toDateValue = (d: Date | undefined) =>
     d ? format(d, 'yyyy-MM-dd') : '';
 
@@ -76,6 +89,17 @@ const EpisodesView: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Valida data de publicação contra conflitos de agenda
+    if (form.publishDate) {
+      const dateStr = format(form.publishDate, 'yyyy-MM-dd');
+      if (!isDateAvailable(dateStr, occupiedDates)) {
+        setPublishDateError('Esta data não está disponível. Escolha uma data com pelo menos 5 dias de distância do episódio mais próximo.');
+        return;
+      }
+    }
+    setPublishDateError(null);
+
     if (plannedCuts > 0) {
       // Vai para etapa de sugestão com IA — tanto na criação quanto na edição
       if (editingId) updateEpisode(editingId, form); // salva dados antes de ir para IA
@@ -103,6 +127,7 @@ const EpisodesView: React.FC = () => {
     setCutTopics([]);
     setStep('form');
     setShowForm(false);
+    setPublishDateError(null);
   };
 
   const startEdit = (ep: EpisodeRecord) => {
@@ -120,6 +145,7 @@ const EpisodesView: React.FC = () => {
       linkVideo: ep.linkVideo ?? '',
       linkCarrossel: ep.linkCarrossel ?? '',
       linkThumbnail: ep.linkThumbnail ?? '',
+      instagramCollabs: ep.instagramCollabs ?? [],
     });
     setPlannedCuts(0);
     setCutTopics([]);
@@ -134,6 +160,7 @@ const EpisodesView: React.FC = () => {
     setPlannedCuts(0);
     setCutTopics([]);
     setStep('form');
+    setPublishDateError(null);
   };
 
   const lastEpisodeNumber = episodes.reduce<number | null>((max, ep) => {
@@ -215,6 +242,14 @@ const EpisodesView: React.FC = () => {
                 <label>Convidado</label>
                 <input required placeholder="Ex: João Silva" value={form.guest} onChange={e => setForm(f => ({ ...f, guest: e.target.value }))} />
               </div>
+              <div className={`${styles.field} ${styles.fieldFull}`}>
+                <TagInput
+                  label="Instagram dos Convidados (Collab)"
+                  value={form.instagramCollabs ?? []}
+                  onChange={tags => setForm(f => ({ ...f, instagramCollabs: tags }))}
+                  placeholder="Ex: @joaosilva · pressione Enter para adicionar"
+                />
+              </div>
               <div className={styles.field}>
                 <label>Status</label>
                 <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as EpStatus }))}>
@@ -230,7 +265,17 @@ const EpisodesView: React.FC = () => {
               </div>
               <div className={styles.field}>
                 <label>Data de Publicação do Episódio</label>
-                <input type="date" value={toDateValue(form.publishDate)} onChange={e => setForm(f => ({ ...f, publishDate: e.target.value ? new Date(e.target.value + 'T12:00:00') : undefined }))} />
+                <DatePickerInteligente
+                  value={form.publishDate}
+                  onChange={date => {
+                    setForm(f => ({ ...f, publishDate: date }));
+                    if (publishDateError) setPublishDateError(null);
+                  }}
+                  occupiedDates={occupiedDates}
+                />
+                {publishDateError && (
+                  <span className={styles.fieldError}>{publishDateError}</span>
+                )}
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
                 <label>Observações</label>

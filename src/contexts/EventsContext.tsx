@@ -53,6 +53,7 @@ function episodeToRow(e: EpisodeRecord) {
     link_carrossel: e.linkCarrossel ?? null,
     link_thumbnail: e.linkThumbnail ?? null,
     published_links: e.publishedLinks ? JSON.stringify(e.publishedLinks) : null,
+    instagram_collabs: e.instagramCollabs ?? null,
   };
 }
 
@@ -75,6 +76,7 @@ function rowToEpisode(r: Record<string, unknown>): EpisodeRecord {
     linkCarrossel: r.link_carrossel as string | undefined,
     linkThumbnail: r.link_thumbnail as string | undefined,
     publishedLinks,
+    instagramCollabs: Array.isArray(r.instagram_collabs) ? (r.instagram_collabs as string[]) : undefined,
   };
 }
 
@@ -344,6 +346,7 @@ export const EventsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (ep.linkCarrossel !== undefined) row.link_carrossel = ep.linkCarrossel ?? null;
     if (ep.linkThumbnail !== undefined) row.link_thumbnail = ep.linkThumbnail ?? null;
     if (ep.publishedLinks !== undefined) row.published_links = JSON.stringify(ep.publishedLinks);
+    if (ep.instagramCollabs !== undefined) row.instagram_collabs = ep.instagramCollabs;
     supabase.from('episodes').update(row).eq('id', id).then(({ error }) => {
       if (error) console.error('Erro ao atualizar episódio:', error);
     });
