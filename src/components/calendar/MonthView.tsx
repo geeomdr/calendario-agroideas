@@ -94,6 +94,9 @@ const MonthView: React.FC<MonthViewProps> = ({ selectedDate, setSelectedDate, on
             const dayKey = format(day, 'yyyy-MM-dd');
             const dayEvents = events.filter(e => isSameDay(e.date, day));
             const dayEpisodes = episodes.filter(e => e.publishDate && isSameDay(e.publishDate, day));
+            const episodesShown = dayEpisodes.slice(0, 3);
+            const eventsShown = dayEvents.slice(0, Math.max(0, 3 - episodesShown.length));
+            const hiddenCount = dayEpisodes.length + dayEvents.length - episodesShown.length - eventsShown.length;
             const isDropTarget = dragOverDay === dayKey;
             const isSelected = selectedDay && isSameDay(day, selectedDay);
             const hasContent = dayEvents.length > 0 || dayEpisodes.length > 0;
@@ -106,11 +109,16 @@ const MonthView: React.FC<MonthViewProps> = ({ selectedDate, setSelectedDate, on
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, day)}
               >
-                <span className={styles.dayNumber}>{format(day, 'd')}</span>
+                <div className={styles.dayHeader}>
+                  <span className={styles.dayNumber}>{format(day, 'd')}</span>
+                  <span className={`${styles.occupancyBadge} ${dayEvents.length === 0 ? styles.occupancyGreen : dayEvents.length <= 2 ? styles.occupancyYellow : styles.occupancyRed}`}>
+                    {dayEvents.length}
+                  </span>
+                </div>
 
                 {/* Desktop: mostra tags completas */}
                 <div className={`${styles.eventsList} ${styles.desktopOnly}`}>
-                  {dayEpisodes.map(ep => (
+                  {episodesShown.map(ep => (
                     <div
                       key={`ep-${ep.id}`}
                       className={styles.episodeTag}
@@ -121,7 +129,7 @@ const MonthView: React.FC<MonthViewProps> = ({ selectedDate, setSelectedDate, on
                       🚀 {ep.name}
                     </div>
                   ))}
-                  {dayEvents.map((event) => (
+                  {eventsShown.map((event) => (
                     <div
                       key={event.id}
                       draggable
@@ -135,6 +143,7 @@ const MonthView: React.FC<MonthViewProps> = ({ selectedDate, setSelectedDate, on
                       <span>{event.title}</span>
                     </div>
                   ))}
+                  {hiddenCount > 0 && <div className={styles.moreEvents}>+{hiddenCount} mais</div>}
                 </div>
 
                 {/* Mobile: só dots coloridos */}

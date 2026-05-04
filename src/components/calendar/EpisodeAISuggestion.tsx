@@ -14,6 +14,7 @@ interface Props {
   episodeName: string;
   topics: string[];
   cutCount: number;
+  startingCutNumber?: number;
   onBack: () => void;
   onConfirm: (cuts: Omit<AgroEvent, 'id'>[]) => void;
 }
@@ -27,6 +28,7 @@ const EpisodeAISuggestion: React.FC<Props> = ({
   episodeName,
   topics,
   cutCount,
+  startingCutNumber = 0,
   onBack,
   onConfirm,
 }) => {
@@ -47,7 +49,7 @@ const EpisodeAISuggestion: React.FC<Props> = ({
     }, currentAttempt);
 
     setCuts(suggested.map((c, i) => ({
-      cutNumber: c.cutNumber ?? i + 1,
+      cutNumber: startingCutNumber + i + 1,
       topic: c.topic || topics[i] || `Recorte ${i + 1}`,
       suggestedDate: c.suggestedDate,
       rationale: c.rationale ?? '',

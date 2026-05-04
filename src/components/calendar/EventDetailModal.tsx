@@ -3,7 +3,6 @@ import { X, Calendar, Building2, Tag, FileText, Hash, CheckCircle2, Clock, Edit3
 import { useEvents } from '../../contexts/EventsContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import type { AgroEvent, Status } from '../../types';
 import styles from './EventDetailModal.module.css';
 import { PLATFORMS, PLATFORM_COLOR } from './platformOptions';
@@ -38,28 +37,54 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-  // Estado local dos links (controlado)
+  // Campos editáveis
+  const [title, setTitle] = useState(event?.title ?? '');
+  const [dateValue, setDateValue] = useState(event ? format(event.date, 'yyyy-MM-dd') : '');
+  const [time, setTime] = useState(event?.time ?? '');
+  const [platforms, setPlatforms] = useState(event?.platforms ?? '');
+  const [notes, setNotes] = useState(event?.notes ?? '');
   const [linkProducao, setLinkProducao] = useState(event?.linkProducao ?? '');
   const [pubLinks, setPubLinks] = useState<{ channel: string; url: string }[]>(event?.publishedLinks ?? []);
 
-  // Valores de referência para detectar mudanças não salvas
-  const savedRef = useRef({ linkProducao: event?.linkProducao ?? '', pubLinks: JSON.stringify(event?.publishedLinks ?? []) });
+  const savedRef = useRef({
+    title: event?.title ?? '',
+    dateValue: event ? format(event.date, 'yyyy-MM-dd') : '',
+    time: event?.time ?? '',
+    platforms: event?.platforms ?? '',
+    notes: event?.notes ?? '',
+    linkProducao: event?.linkProducao ?? '',
+    pubLinks: JSON.stringify(event?.publishedLinks ?? []),
+  });
 
   const isDirty =
+    title !== savedRef.current.title ||
+    dateValue !== savedRef.current.dateValue ||
+    time !== savedRef.current.time ||
+    platforms !== savedRef.current.platforms ||
+    notes !== savedRef.current.notes ||
     linkProducao !== savedRef.current.linkProducao ||
     JSON.stringify(pubLinks) !== savedRef.current.pubLinks;
 
-  // Reseta estado ao abrir um evento diferente
   useEffect(() => {
+    const t = initialEvent?.title ?? '';
+    const d = initialEvent ? format(initialEvent.date, 'yyyy-MM-dd') : '';
+    const tm = initialEvent?.time ?? '';
+    const pl = initialEvent?.platforms ?? '';
+    const nt = initialEvent?.notes ?? '';
     const link = initialEvent?.linkProducao ?? '';
     const pub = initialEvent?.publishedLinks ?? [];
     setConfirming(false);
     setConfirmingClose(false);
     setDeleting(false);
     setToast(null);
+    setTitle(t);
+    setDateValue(d);
+    setTime(tm);
+    setPlatforms(pl);
+    setNotes(nt);
     setLinkProducao(link);
     setPubLinks(pub);
-    savedRef.current = { linkProducao: link, pubLinks: JSON.stringify(pub) };
+    savedRef.current = { title: t, dateValue: d, time: tm, platforms: pl, notes: nt, linkProducao: link, pubLinks: JSON.stringify(pub) };
   }, [initialEvent?.id]);
 
   const showToast = (type: 'success' | 'error', msg: string) => {
@@ -67,7 +92,6 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
     setTimeout(() => setToast(null), 2500);
   };
 
-  // Fecha com verificação de mudanças não salvas
   const handleClose = () => {
     if (isDirty) {
       setConfirmingClose(true);
@@ -77,14 +101,27 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
   };
 
   const handleSave = () => {
-    if (!event) return;
+    if (!event || !dateValue) return;
     const filteredPub = pubLinks.filter(p => p.channel || p.url);
     updateEvent(event.id, {
+      title: title.trim() || event.title,
+      date: new Date(dateValue + 'T12:00:00'),
+      time: time.trim() || undefined,
+      platforms: platforms.trim() || undefined,
+      notes: notes.trim() || undefined,
       linkProducao: linkProducao.trim() || undefined,
       publishedLinks: filteredPub,
     });
-    savedRef.current = { linkProducao: linkProducao.trim(), pubLinks: JSON.stringify(filteredPub) };
-    showToast('success', 'Links salvos!');
+    savedRef.current = {
+      title: title.trim() || event.title,
+      dateValue,
+      time: time.trim(),
+      platforms: platforms.trim(),
+      notes: notes.trim(),
+      linkProducao: linkProducao.trim(),
+      pubLinks: JSON.stringify(filteredPub),
+    };
+    showToast('success', 'Corte atualizado!');
     setTimeout(onClose, 800);
   };
 
@@ -121,13 +158,14 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
             >
               <div className={styles.header} style={{ borderLeftColor: STATUS_COLOR[event.status] }}>
                 <div className={styles.headerContent}>
-                  <span className={styles.episodeLabel}>{event.episode}</span>
-                  <h2 className={styles.title}>{event.title}</h2>
+                  <span className={styles.episodeLabel}>{event.episode} · Corte #{event.cutNumber}</span>
+                  <h2 className={styles.title}>{title || event.title}</h2>
                 </div>
                 <button onClick={handleClose} className={styles.closeBtn} disabled={deleting}><X size={22} /></button>
               </div>
 
               <div className={styles.body}>
+                {/* Status */}
                 <div className={styles.statusRow}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span
@@ -147,7 +185,8 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                         color: STATUS_COLOR[event.status],
                         fontWeight: 500,
                         outline: 'none',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
                       }}
                     >
                       <option value="em-edicao">Em Edição</option>
@@ -159,35 +198,62 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   </div>
                 </div>
 
+                {/* Campos editáveis */}
+                <div className={styles.editFields}>
+                  <div className={styles.editField}>
+                    <label className={styles.editLabel}><Edit3 size={13} /> Título</label>
+                    <input
+                      className={styles.editInput}
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      placeholder="Título do corte"
+                    />
+                  </div>
+
+                  <div className={styles.editField}>
+                    <label className={styles.editLabel}><Calendar size={13} /> Data de publicação</label>
+                    <input
+                      type="date"
+                      className={styles.editInput}
+                      value={dateValue}
+                      onChange={e => setDateValue(e.target.value)}
+                    />
+                  </div>
+
+                  <div className={styles.editField}>
+                    <label className={styles.editLabel}><Clock size={13} /> Horário (opcional)</label>
+                    <input
+                      type="time"
+                      className={styles.editInput}
+                      value={time}
+                      onChange={e => setTime(e.target.value)}
+                      placeholder="HH:MM"
+                    />
+                  </div>
+
+                  <div className={styles.editField}>
+                    <label className={styles.editLabel}><Tag size={13} /> Plataformas (opcional)</label>
+                    <input
+                      className={styles.editInput}
+                      value={platforms}
+                      onChange={e => setPlatforms(e.target.value)}
+                      placeholder="Ex: Reels+Shorts+TT"
+                    />
+                  </div>
+
+                  <div className={styles.editField}>
+                    <label className={styles.editLabel}><FileText size={13} /> Observações (opcional)</label>
+                    <input
+                      className={styles.editInput}
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                      placeholder="Observações sobre o corte..."
+                    />
+                  </div>
+                </div>
+
+                {/* Empresa (somente leitura) */}
                 <div className={styles.fields}>
-                  <div className={styles.field}>
-                    <span className={styles.fieldIcon}><Hash size={15} /></span>
-                    <div>
-                      <span className={styles.fieldLabel}>Corte</span>
-                      <span className={styles.fieldValue}>#{event.cutNumber}</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.field}>
-                    <span className={styles.fieldIcon}><Calendar size={15} /></span>
-                    <div>
-                      <span className={styles.fieldLabel}>Data de Publicação</span>
-                      <span className={styles.fieldValue}>
-                        {format(event.date, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                  </div>
-
-                  {event.time && (
-                    <div className={styles.field}>
-                      <span className={styles.fieldIcon}><Clock size={15} /></span>
-                      <div>
-                        <span className={styles.fieldLabel}>Horário</span>
-                        <span className={styles.fieldValue}>{event.time}</span>
-                      </div>
-                    </div>
-                  )}
-
                   <div className={styles.field}>
                     <span className={styles.fieldIcon}><Building2 size={15} /></span>
                     <div>
@@ -195,29 +261,16 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                       <span className={styles.fieldValue}>{event.company}</span>
                     </div>
                   </div>
-
-                  {event.platforms && (
-                    <div className={styles.field}>
-                      <span className={styles.fieldIcon}><Tag size={15} /></span>
-                      <div>
-                        <span className={styles.fieldLabel}>Plataformas</span>
-                        <span className={styles.fieldValue}>{event.platforms}</span>
-                      </div>
+                  <div className={styles.field}>
+                    <span className={styles.fieldIcon}><Hash size={15} /></span>
+                    <div>
+                      <span className={styles.fieldLabel}>Nº do corte</span>
+                      <span className={styles.fieldValue}>#{event.cutNumber}</span>
                     </div>
-                  )}
-
-                  {event.notes && (
-                    <div className={styles.field}>
-                      <span className={styles.fieldIcon}><FileText size={15} /></span>
-                      <div>
-                        <span className={styles.fieldLabel}>Observações</span>
-                        <span className={styles.fieldValue}>{event.notes}</span>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* ── Link de Produção ──────────────────────────────────── */}
+                {/* Link de Produção */}
                 <div className={styles.linksSection}>
                   <div className={styles.linksSectionTitle}>
                     <Link2 size={13} /> Link de Produção
@@ -240,7 +293,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   </div>
                 </div>
 
-                {/* ── Links Publicados (só quando postado) ─────────────── */}
+                {/* Links Publicados (só quando postado) */}
                 {event.status === 'postado' && (
                   <div className={styles.pubLinksSection}>
                     <div className={styles.pubLinksSectionTitle}>
@@ -301,7 +354,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
                   <Trash2 size={15} />
                   Excluir corte
                 </button>
-                <button onClick={handleSave} className={styles.closeActionBtn} disabled={deleting}>
+                <button onClick={handleSave} className={styles.closeActionBtn} disabled={deleting || !dateValue}>
                   <Save size={14} /> Salvar
                 </button>
               </div>
@@ -310,7 +363,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
         )}
       </AnimatePresence>
 
-      {/* ── Confirmar fechar com mudanças não salvas ──────────────────── */}
+      {/* Confirmar fechar com mudanças não salvas */}
       {confirmingClose && (
         <div className={styles.confirmOverlay} onClick={() => setConfirmingClose(false)}>
           <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>
@@ -341,7 +394,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
         </div>
       )}
 
-      {/* ── Modal de confirmação (excluir) ───────────────────────────── */}
+      {/* Modal de confirmação (excluir) */}
       {confirming && event && (
         <div className={styles.confirmOverlay} onClick={() => !deleting && setConfirming(false)}>
           <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>
@@ -378,7 +431,7 @@ const EventDetailModal: React.FC<Props> = ({ event: initialEvent, onClose }) => 
         </div>
       )}
 
-      {/* ── Toast ───────────────────────────────────────────────────── */}
+      {/* Toast */}
       {toast && (
         <div className={`${styles.toast} ${toast.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
           <CheckCircle2 size={16} />
