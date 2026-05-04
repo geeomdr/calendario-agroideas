@@ -333,7 +333,10 @@ const EpisodesView: React.FC = () => {
               {editingId && (() => {
                 const episodeCuts = events
                   .filter(ev => ev.episode === form.name)
-                  .sort((a, b) => a.cutNumber - b.cutNumber);
+                  .sort((a, b) => {
+                    const dateDiff = a.date.getTime() - b.date.getTime();
+                    return dateDiff !== 0 ? dateDiff : a.cutNumber - b.cutNumber;
+                  });
 
                 return episodeCuts.length > 0 ? (
                   <div className={styles.cutsList}>
@@ -440,6 +443,11 @@ const EpisodesView: React.FC = () => {
               episodeName={form.name}
               topics={cutTopics}
               cutCount={plannedCuts}
+              startingCutNumber={editingId
+                ? events
+                    .filter(ev => ev.episode === form.name)
+                    .reduce((max, ev) => Math.max(max, ev.cutNumber), 0)
+                : 0}
               onBack={() => setStep('form')}
               onConfirm={handleAIConfirm}
             />

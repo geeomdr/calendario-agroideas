@@ -331,6 +331,17 @@ export const EventsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const updateEpisode = (id: string, ep: Partial<EpisodeRecord>) => {
+    // Propaga renomeação do episódio para todos os cortes vinculados
+    if (ep.name !== undefined) {
+      const oldEp = episodes.find(e => e.id === id);
+      if (oldEp && ep.name !== oldEp.name) {
+        setEvents(prev => prev.map(ev =>
+          ev.episode === oldEp.name ? { ...ev, episode: ep.name! } : ev
+        ));
+        supabase.from('events').update({ episode: ep.name }).eq('episode', oldEp.name)
+          .then(({ error }) => { if (error) console.error('Erro ao propagar nome do episódio nos cortes:', error); });
+      }
+    }
     setEpisodes(prev => prev.map(e => e.id === id ? { ...e, ...ep } : e));
     const row: Record<string, unknown> = {};
     if (ep.episodeNumber !== undefined) row.episode_number = ep.episodeNumber;
