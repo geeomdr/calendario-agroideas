@@ -1,4 +1,15 @@
-export type ViewType = 'year' | 'month' | 'list' | 'dashboard' | 'episodes' | 'companies' | 'export' | 'analisador';
+export type ViewType = 'year' | 'month' | 'list' | 'dashboard' | 'episodes' | 'companies' | 'export' | 'analisador' | 'templates';
+
+export interface ContentTemplate {
+  id: string;
+  name: string;
+  channel: string;
+  pieceType: string;
+  partnerCompany?: string;
+  editableLink: string;
+  notes?: string;
+  createdAt: string;
+}
 
 export type Status = 'em-edicao' | 'em-aprovacao' | 'pendente' | 'agendado' | 'postado';
 
@@ -25,6 +36,7 @@ export interface AgroEvent {
   companyId?: string;
   cutNumber: number;
   platforms?: string;
+  cutType?: 'curto' | 'longo';
   notes?: string;
   linkProducao?: string;
   publishedLinks?: { channel: string; url: string }[];
